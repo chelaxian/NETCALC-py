@@ -18,13 +18,21 @@ PRIVATE_BLOCKS = [
     IPv4Network('192.168.0.0/16')
 ]
 
+# Helper function to repeat characters
+def repeat_char(char, count):
+    return char * count
+
+# Common separators
+SEPARATOR = repeat_char('-', 43)
+MENU_SEPARATOR = repeat_char('=', 43)
+
 def input_with_validation(prompt, validator):
     """Generic input validation function"""
     while True:
         value = input(prompt).strip()
         if validator(value):
             return value
-        print("\n-------------------------------------------\n\nНекорректный ввод. Попробуйте еще раз.")
+        print(f"\n{SEPARATOR}\n\nНекорректный ввод. Попробуйте еще раз.")
 
 def is_valid_cidr(value):
     """Validate CIDR notation"""
@@ -61,7 +69,7 @@ def get_network_type(network):
 
 def display_network_info(network):
     """Display detailed network information"""
-    print(f"\n-------------------------------------------\n\nМаска сети: {network.netmask}")
+    print(f"\n{SEPARATOR}\n\nМаска сети: {network.netmask}")
     print(f"Wildcard маска: {network.hostmask}")
     print(f"Сетевой адрес: {network.network_address}")
     print(f"Broadcast адрес: {network.broadcast_address}")
@@ -99,7 +107,7 @@ def display_network_info(network):
 def get_network_info():
     """Get and display network information"""
     ip_with_cidr = input_with_validation(
-        '\n-------------------------------------------\n\nВведите IP-адрес с маской в формате CIDR\n(например, 192.168.0.156/24):\n\nВвод: ',
+        f"\n{SEPARATOR}\n\nВведите IP-адрес с маской в формате CIDR\n(например, 192.168.0.156/24):\n\nВвод: ",
         is_valid_cidr)
     network = IPv4Network(ip_with_cidr, strict=False)
     display_network_info(network)
@@ -107,24 +115,24 @@ def get_network_info():
 def subnet_splitter():
     """Split network into subnets"""
     subnet_cidr = input_with_validation(
-        '\n-------------------------------------------\n\nВведите адрес исходной сети в формате CIDR\n(например 10.0.0.0/8):\n\nВвод: ',
+        f"\n{SEPARATOR}\n\nВведите адрес исходной сети в формате CIDR\n(например 10.0.0.0/8):\n\nВвод: ",
         is_valid_cidr)
     subnet = IPv4Network(subnet_cidr)
 
-    print("\n-------------------------------------------\n\nСписок масок и кол-ва дробных подсетей:")
+    print(f"\n{SEPARATOR}\n\nСписок масок и кол-ва дробных подсетей:")
     for i in range(subnet.prefixlen + 1, 33):
         print(f"({i - subnet.prefixlen})    /{i}    -    {2 ** (i - subnet.prefixlen)} подсетей")
 
     mask_choice = int(input_with_validation(
-        '\n-------------------------------------------\n\nВыберите (номер) пункта с кол-во подсетей:\n\nВвод: ',
+        f"\n{SEPARATOR}\n\nВыберите (номер) пункта с кол-во подсетей:\n\nВвод: ",
         is_valid_n))
 
     new_prefixlen = subnet.prefixlen + mask_choice
     if new_prefixlen > 32:
-        print("\n-------------------------------------------\n\nНевозможно разделить подсеть на указанное кол-во подсетей.")
+        print(f"\n{SEPARATOR}\n\nНевозможно разделить подсеть на указанное кол-во подсетей.")
         return
 
-    print("\n-------------------------------------------\n\nСписок подсетей после дробления:")
+    print(f"\n{SEPARATOR}\n\nСписок подсетей после дробления:")
     for i, new_subnet in enumerate(subnet.subnets(new_prefix=new_prefixlen), start=1):
         print(f"{new_subnet}")
     print('\n')
@@ -132,22 +140,22 @@ def subnet_splitter():
 def exclude_subnets():
     """Exclude subnets from main network"""
     main_network = IPv4Network(input_with_validation(
-        '\n-------------------------------------------\n\n\nВведите исходную сеть в формате CIDR\n(например, 0.0.0.0/0):\n\nВвод: ',
+        f"\n{SEPARATOR}\n\n\nВведите исходную сеть в формате CIDR\n(например, 0.0.0.0/0):\n\nВвод: ",
         is_valid_cidr))
     N = int(input_with_validation(
-        '\n-------------------------------------------\n\nВведите количество исключаемых подсетей:\n\nВвод: ',
+        f"\n{SEPARATOR}\n\nВведите количество исключаемых подсетей:\n\nВвод: ",
         is_valid_n))
 
     exclude_networks = []
     for i in range(N):
         while True:
             exclude = IPv4Network(input_with_validation(
-                f'\n-------------------------------------------\n\nВведите исключаемую сеть/маску {i + 1} в формате CIDR\n(например, 172.16.0.0/12):\n\nВвод: ',
+                f"\n{SEPARATOR}\n\nВведите исключаемую сеть/маску {i + 1} в формате CIDR\n(например, 172.16.0.0/12):\n\nВвод: ",
                 is_valid_cidr))
             if exclude.overlaps(main_network):
                 exclude_networks.append(exclude)
                 break
-            print("\n-------------------------------------------\n\nОшибка: введенная подсеть не пересекается с исходной сетью. Введите другую.")
+            print(f"\n{SEPARATOR}\n\nОшибка: введенная подсеть не пересекается с исходной сетью. Введите другую.")
 
     result = [main_network]
     for exclude in exclude_networks:
@@ -163,7 +171,7 @@ def exclude_subnets():
         result = new_result
 
     sort_type = input_with_validation(
-        '\n-------------------------------------------\n\nВведите номер типа сортировки результата:\n1 - по возрастанию адреса сети,\n2 - по возрастанию ширины маски,\n3 - по убыванию ширины маски,\n4 - по убыванию адреса сети.\n\nВвод: ',
+        f"\n{SEPARATOR}\n\nВведите номер типа сортировки результата:\n1 - по возрастанию адреса сети,\n2 - по возрастанию ширины маски,\n3 - по убыванию ширины маски,\n4 - по убыванию адреса сети.\n\nВвод: ",
         lambda x: x in ['1', '2', '3', '4'])
     
     sort_key = {
@@ -174,7 +182,7 @@ def exclude_subnets():
     }[sort_type]
     
     result.sort(key=sort_key)
-    print('\n-------------------------------------------\n\nСписок оставшихся подсетей:\n')
+    print(f"\n{SEPARATOR}\n\nСписок оставшихся подсетей:\n")
     for net in result:
         print(str(net))
     print('\n')
@@ -182,11 +190,11 @@ def exclude_subnets():
 def summarize_networks():
     """Summarize multiple networks"""
     N = int(input_with_validation(
-        '\n-------------------------------------------\n\nВведите количество сетей:\n\nВвод: ',
+        f"\n{SEPARATOR}\n\nВведите количество сетей:\n\nВвод: ",
         is_valid_n))
 
     networks = [IPv4Network(input_with_validation(
-        f'\n-------------------------------------------\n\nВведите сеть {i + 1} в формате CIDR\n(например, 192.168.0.0/24):\n\nВвод: ',
+        f"\n{SEPARATOR}\n\nВведите сеть {i + 1} в формате CIDR\n(например, 192.168.0.0/24):\n\nВвод: ",
         is_valid_cidr)) for i in range(N)]
 
     min_ip = min(net.network_address for net in networks)
@@ -199,7 +207,7 @@ def summarize_networks():
         prefix_length -= 1
         summary = IPv4Network((min_ip, prefix_length), strict=False)
 
-    print('\n-------------------------------------------\n\nСуммаризация сетей:\n')
+    print(f"\n{SEPARATOR}\n\nСуммаризация сетей:\n")
     print(str(summary))
     print('\n')
 
@@ -207,13 +215,13 @@ def subnet_tirazh():
     """Create multiple subnets"""
     while True:
         start_ip_str = input_with_validation(
-            "\n-------------------------------------------\n\nВведите начальный IP-адрес сети (без маски):\n\nВвод: ",
+            f"\n{SEPARATOR}\n\nВведите начальный IP-адрес сети (без маски):\n\nВвод: ",
             lambda x: '/' not in x and is_valid_cidr(f"{x}/32"))
         try:
             start_ip = IPv4Address(start_ip_str)
             break
         except ValueError:
-            print("\n-------------------------------------------\n\nНекорректный IP-адрес! Попробуйте снова.")
+            print(f"\n{SEPARATOR}\n\nНекорректный IP-адрес! Попробуйте снова.")
 
     required_mask = '255.0.0.0' if start_ip_str.split('.')[1] == '0' else \
                    '255.255.0.0' if start_ip_str.split('.')[2] == '0' else \
@@ -225,26 +233,26 @@ def subnet_tirazh():
         max_hosts = min(int(IPv4Address("255.255.255.255")) - int(start_ip), 16777214)
 
     required_hosts_input = int(input_with_validation(
-        f"\n-------------------------------------------\n\nВведите количество хостов в желаемой сети (от 1 до {max_hosts}):\n\nВвод: ",
+        f"\n{SEPARATOR}\n\nВведите количество хостов в желаемой сети (от 1 до {max_hosts}):\n\nВвод: ",
         is_valid_n))
 
     prefix = 32 - int(math.ceil(math.log2(required_hosts_input + 2)))
     max_possible_subnets = (int(IPv4Address("255.255.255.255")) - int(start_ip)) // (required_hosts_input + 2) + 1
 
     tirazh_count = int(input_with_validation(
-        f"\n-------------------------------------------\n\nВведите количество тиражируемых подсетей (от 1 до {max_possible_subnets}):\n\nВвод: ",
+        f"\n{SEPARATOR}\n\nВведите количество тиражируемых подсетей (от 1 до {max_possible_subnets}):\n\nВвод: ",
         lambda x: x.isdigit() and 1 <= int(x) <= max_possible_subnets))
 
     networks = []
     current_ip = start_ip
     for _ in range(tirazh_count):
         if int(current_ip) > 0xFFFFFFFF:
-            raise ValueError("\n-------------------------------------------\n\nНекорректное количество подсетей")
+            raise ValueError(f"\n{SEPARATOR}\n\nНекорректное количество подсетей")
         network = IPv4Network((current_ip, prefix), strict=False)
         networks.append(network)
         current_ip = IPv4Address(int(network[-1]) + 1)
 
-    print("\n-------------------------------------------\n\nРезультат:")
+    print(f"\n{SEPARATOR}\n\nРезультат:")
     for new_subnet in networks:
         print(new_subnet)
 
@@ -252,13 +260,13 @@ def main_menu():
     """Display main menu and handle user input"""
     while True:
         menu_option = input_with_validation(
-            "\n===========================================\n\nМЕНЮ:\n" +
+            f"\n{MENU_SEPARATOR}\n\nМЕНЮ:\n" +
             "\n".join(f"{k} - {v}" for k, v in MENU_OPTIONS.items()) +
-            "\n\n===========================================\n\nВыберете нужное действие:\n\nВвод: ",
+            f"\n\n{MENU_SEPARATOR}\n\nВыберете нужное действие:\n\nВвод: ",
             is_valid_menu_option)
 
         if menu_option == '0':
-            print("\n-------------------------------------------\n\nВыход из программы")
+            print(f"\n{SEPARATOR}\n\nВыход из программы")
             break
 
         {
