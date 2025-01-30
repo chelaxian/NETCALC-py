@@ -1,1 +1,3 @@
-# NETCALC-py
+# FreeNetCalc
+
+my free offline version of netcalc
